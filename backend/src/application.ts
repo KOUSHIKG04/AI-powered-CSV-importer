@@ -1,19 +1,17 @@
-import express, { type Request, type Response, type NextFunction } from "express";
+import express, { type Request, type Response} from "express";
 import cors from "cors";
-
 import { errorHandler } from "@/middleware/errorHandler.js";
+import csvRouter from "@/routes/csvRoutes.js";
 
 const application = express();
 application.use(
   cors({
-    // origin : ["http://localhost:3000", ],
-    // credentials: true,
-    // methods : ["GET" , "POST" , "PUT" , "DELETE"],
-    // allowedHeaders : ["Content-Type" , "Authorization"],
+    origin : "*"
   }),
 );
-application.use(express.json());
 
+application.use(express.json({ limit: "50mb" }));
+application.use("/api/v1", csvRouter);
 
 application.use((req: Request, res: Response) => {
   return res.status(404).json({
