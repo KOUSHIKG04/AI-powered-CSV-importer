@@ -3,7 +3,7 @@ import {
   importCsvHandler,
   parseCsvHandler,
   importStreamHandler,
-} from "@/controllers/csvController.js";
+} from "../controllers/csvController.js";
 import multer from "multer";
 
 const csvRouter = Router();

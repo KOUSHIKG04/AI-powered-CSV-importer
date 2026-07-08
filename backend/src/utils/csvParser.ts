@@ -11,7 +11,7 @@ export function parseCsv(buffer: Buffer): Promise<Record<string, string>[]> {
       },
       (err, records) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
 
         return resolve(records as Record<string, string>[]);

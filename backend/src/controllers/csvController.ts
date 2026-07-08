@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { parseCsv } from "@/utils/csvParser.js";
-import { mapBatchWithAI, type CRMLead } from "@/services/aiService.js";
+import { parseCsv } from "../utils/csvParser.js";
+import { mapBatchWithAI, type CRMLead } from "../services/aiService.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const BATCH_SIZE = 30;
