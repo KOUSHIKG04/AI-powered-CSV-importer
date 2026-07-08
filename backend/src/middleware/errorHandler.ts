@@ -1,6 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
 
-export function errorHandler( err: any, req: Request, res: Response, next: NextFunction,
+interface AppError extends Error {
+  statusCode?: number;
+}
+
+export function errorHandler(
+  err: AppError,
+  req: Request,
+  res: Response,
+  next: NextFunction,
 ) {
   console.error("Global Error Caught:", err);
 

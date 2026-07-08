@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  importCsvHandler,
   parseCsvHandler,
   importStreamHandler,
 } from "@/controllers/csvController.js";
@@ -13,6 +14,7 @@ const upload = multer({
 });
 
 csvRouter.post("/parse", upload.single("file"), parseCsvHandler);
+csvRouter.post("/import-csv", upload.single("file"), importCsvHandler);
 csvRouter.post("/import-stream", importStreamHandler);
 
 export default csvRouter;
