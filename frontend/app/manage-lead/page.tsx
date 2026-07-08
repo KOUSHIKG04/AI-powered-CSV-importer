@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Papa from "papaparse"
 import {
   Upload,
   Plus,
@@ -34,57 +35,54 @@ export default function ManagePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isParsingCsv, setIsParsingCsv] = useState(false)
 
-  // Local CSV parsing states
+
   const [csvHeaders, setCsvHeaders] = useState<string[]>([])
   const [rawCsvRows, setRawCsvRows] = useState<Record<string, string>[]>([])
 
-  // Import/AI streaming states
+  
   const [isImporting, setIsImporting] = useState(false)
   const [processedCount, setProcessedCount] = useState(0)
   const [totalCount, setTotalCount] = useState(0)
 
-  // Final processed records shown in main table
+
   const [processedLeads, setProcessedLeads] = useState<CRMLead[]>([])
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Handler when file is selected via Dropzone/File Picker
-  const handleFileSelect = async (file: File) => {
+  
+  const handleFileSelect = (file: File) => {
     setSelectedFile(file)
     setIsParsingCsv(true)
 
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
+    Papa.parse<Record<string, string>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.trim(),
+      complete: (results) => {
+        const rows = results.data.filter((row) =>
+          Object.values(row).some((value) => String(value ?? "").trim() !== "")
+        )
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/parse`, {
-        method: "POST",
-        body: formData,
-      })
-      const result = (await response.json()) as {
-        success: boolean
-        rows?: Record<string, string>[]
-        headers?: string[]
-        error?: string
-      }
+        if (rows.length === 0) {
+          toast.error("CSV file does not contain any data rows.")
+          setIsParsingCsv(false)
+          resetUploadState()
+          return
+        }
 
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Failed to parse CSV file.")
-      }
-
-      setCsvHeaders(result.headers ?? Object.keys(result.rows?.[0] ?? {}))
-      setRawCsvRows(result.rows ?? [])
-      toast.success("CSV parsed and ready for preview.")
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown CSV parsing error"
-      toast.error(message)
-      resetUploadState()
-    } finally {
-      setIsParsingCsv(false)
-    }
+        setCsvHeaders(results.meta.fields ?? Object.keys(rows[0] ?? {}))
+        setRawCsvRows(rows)
+        setIsParsingCsv(false)
+        toast.success("CSV parsed and ready for preview.")
+      },
+      error: (error) => {
+        toast.error(`Failed to parse CSV file: ${error.message}`)
+        setIsParsingCsv(false)
+        resetUploadState()
+      },
+    })
   }
 
-  // Resets the file selection state
+ 
   const resetUploadState = () => {
     setSelectedFile(null)
     setCsvHeaders([])
@@ -100,7 +98,7 @@ export default function ManagePage() {
     setIsImporting(true)
     setProcessedCount(0)
     setTotalCount(rawCsvRows.length)
-    setProcessedLeads([]) // clear previous imports
+    setProcessedLeads([])
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/import-stream`, {
@@ -251,7 +249,7 @@ export default function ManagePage() {
         open={isUploadOpen}
         onOpenChange={(open) => !isImporting && setIsUploadOpen(open)}
       >
-        <DialogContent className="h-[550px] !w-[92vw] !max-w-[900px] overflow-hidden">
+        <DialogContent className="h-[550px] w-[92vw]! max-w-[900px]! overflow-hidden">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold">
               Import Leads via CSV

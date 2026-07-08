@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle2, AlertTriangle, Users, FileX, Info } from "lucide-react"
 
-// CRM Lead Interface matching backend
+
 export interface CRMLead {
   created_at?: string
   name?: string
@@ -34,7 +34,7 @@ interface ResultTableProps {
 }
 
 export function ResultTable({ records }: ResultTableProps) {
-  // Separate successful vs. skipped records
+ 
   const { importedLeads, skippedLeads } = useMemo(() => {
     const imported: CRMLead[] = []
     const skipped: CRMLead[] = []
@@ -61,7 +61,7 @@ export function ResultTable({ records }: ResultTableProps) {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Total Processed
+                Total Imported
               </p>
               <h3 className="text-2xl font-bold">{records.length}</h3>
             </div>
@@ -75,7 +75,7 @@ export function ResultTable({ records }: ResultTableProps) {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Successfully Imported
+                Successfully Parsed
               </p>
               <h3 className="text-2xl font-bold text-emerald-500">
                 {importedLeads.length}
@@ -91,7 +91,7 @@ export function ResultTable({ records }: ResultTableProps) {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Skipped Records
+                Total Skipped
               </p>
               <h3 className="text-2xl font-bold text-rose-500">
                 {skippedLeads.length}
@@ -120,7 +120,6 @@ export function ResultTable({ records }: ResultTableProps) {
           </TabsList>
         </div>
 
-        {/* 2a. Imported Leads Virtualized Grid */}
         <TabsContent value="imported" className="mt-0">
           {importedLeads.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border bg-card/20 p-12">
@@ -132,9 +131,7 @@ export function ResultTable({ records }: ResultTableProps) {
           ) : (
             <div className="overflow-hidden rounded-xl border bg-card">
               <div className="overflow-x-auto">
-                {/* Horizontal Scroll wrapper */}
                 <div className="min-w-[1350px]">
-                  {/* Table Header */}
                   <div className="grid grid-cols-[200px_200px_150px_150px_150px_150px_200px] gap-4 border-b bg-secondary px-6 py-3 text-xs font-bold tracking-wider text-secondary-foreground uppercase">
                     <div>Lead Name</div>
                     <div>Email</div>
@@ -145,7 +142,6 @@ export function ResultTable({ records }: ResultTableProps) {
                     <div>Lead Owner</div>
                   </div>
 
-                  {/* Virtualized Body */}
                   <VirtualizedList leads={importedLeads} type="imported" />
                 </div>
               </div>
@@ -153,7 +149,7 @@ export function ResultTable({ records }: ResultTableProps) {
           )}
         </TabsContent>
 
-        {/* 2b. Skipped Leads Virtualized Grid */}
+
         <TabsContent value="skipped" className="mt-0">
           {skippedLeads.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border bg-card/20 p-12">
@@ -166,7 +162,7 @@ export function ResultTable({ records }: ResultTableProps) {
             <div className="overflow-hidden rounded-xl border bg-card">
               <div className="overflow-x-auto">
                 <div className="min-w-[1120px]">
-                  {/* Table Header */}
+              
                   <div className="grid grid-cols-[250px_200px_150px_150px_250px] gap-4 border-b bg-secondary px-6 py-3 text-xs font-bold tracking-wider text-secondary-foreground uppercase">
                     <div>Skip Reason</div>
                     <div>Name</div>
@@ -175,7 +171,7 @@ export function ResultTable({ records }: ResultTableProps) {
                     <div>CRM Note Extract</div>
                   </div>
 
-                  {/* Virtualized Body */}
+               
                   <VirtualizedList leads={skippedLeads} type="skipped" />
                 </div>
               </div>
@@ -202,7 +198,7 @@ function VirtualizedList({
   const rowVirtualizer = useVirtualizer({
     count: leads.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 52, // Height of each row in pixels
+    estimateSize: () => 52, 
     overscan: 10,
   })
 
@@ -242,7 +238,7 @@ function VirtualizedList({
               }}
             >
               {type === "imported" ? (
-                // Row matching the GrowEasy CRM table columns
+              
                 <div className="grid w-full grid-cols-[200px_200px_150px_150px_150px_150px_200px] items-center gap-4 text-sm">
                   <div
                     className="truncate font-medium text-foreground"
@@ -286,7 +282,7 @@ function VirtualizedList({
                   </div>
                 </div>
               ) : (
-                // Row showing skipped records columns
+        
                 <div className="grid w-full grid-cols-[250px_200px_150px_150px_250px] items-center gap-4 text-sm">
                   <div
                     className="flex items-center gap-1.5 truncate font-semibold text-rose-500"

@@ -59,11 +59,36 @@ export default function DashboardPage() {
             </Link>
           }
         />
-    
       </header>
 
       <main className="flex-1 overflow-y-auto p-8">
-       
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            AI CSV Importer
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Monitor the importer workflow, mapping coverage, and skipped-record
+            handling from one place.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat) => (
+            <Card key={stat.label} className="bg-card/70">
+              <CardContent className="flex items-center gap-4 p-5">
+                <div className="flex size-10 items-center justify-center border bg-muted text-primary">
+                  <stat.icon className="size-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold">{stat.value}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </main>
     </div>
   )

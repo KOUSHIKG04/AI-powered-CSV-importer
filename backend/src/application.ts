@@ -1,7 +1,7 @@
 import express, { type Request, type Response} from "express";
 import cors from "cors";
-import { errorHandler } from "@/middleware/errorHandler.js";
-import csvRouter from "@/routes/csvRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import csvRouter from "./routes/csvRoutes.js";
 
 const application = express();
 application.use(
