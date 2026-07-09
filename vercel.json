@@ -8,7 +8,7 @@
       "root": "backend",
       "framework": "node",
       "buildCommand": "npm run build",
-      "entrypoint": "dist/server.js"
+      "entrypoint": "server.js"
     }
   },
   "rewrites": [
