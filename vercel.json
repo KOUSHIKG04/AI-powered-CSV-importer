@@ -5,7 +5,10 @@
       "framework": "nextjs"
     },
     "backend": {
-      "root": "backend"
+      "root": "backend",
+      "framework": "node",
+      "buildCommand": "npm run build",
+      "entrypoint": "dist/server.js"
     }
   },
   "rewrites": [
