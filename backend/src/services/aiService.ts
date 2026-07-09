@@ -2,39 +2,7 @@ import {
   GoogleGenerativeAI,
   type GenerativeModel,
 } from "@google/generative-ai";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-export interface CRMLead {
-  created_at?: string;
-  name?: string;
-  email?: string;
-  country_code?: string;
-  mobile_without_country_code?: string;
-  company?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  lead_owner?: string;
-  crm_status?:
-    | "GOOD_LEAD_FOLLOW_UP"
-    | "DID_NOT_CONNECT"
-    | "BAD_LEAD"
-    | "SALE_DONE";
-  crm_note?: string;
-  data_source?:
-    | "leads_on_demand"
-    | "meridian_tower"
-    | "eden_park"
-    | "varah_swamy"
-    | "sarjapur_plots"
-    | "";
-  possession_time?: string;
-  description?: string;
-  __skipped?: boolean; // internal flag: set true if record must be skipped
-  __skip_reason?: string; // internal reason for skipping
-}
+import type { CRMLead, RawCsvRecord } from "../types/crm.js";
 
 interface AIMappingResponse {
   records: CRMLead[];
@@ -77,14 +45,14 @@ function getModel() {
   return model;
 }
 
-function cleanText(value: unknown): string | undefined {
+export function cleanText(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
 
   const cleaned = value.replace(/\r?\n/g, "\\n").trim();
   return cleaned.length > 0 ? cleaned : undefined;
 }
 
-function normalizeLead(record: CRMLead): CRMLead {
+export function normalizeLead(record: CRMLead): CRMLead {
   const crmStatus = cleanText(record.crm_status);
   const dataSource = cleanText(record.data_source) ?? "";
   const createdAt = cleanText(record.created_at);
@@ -130,8 +98,24 @@ function parseJsonResponse(responseText: string): AIMappingResponse {
   }
 }
 
+export function normalizeAIRecords(
+  rawRows: RawCsvRecord[],
+  records: CRMLead[],
+): CRMLead[] {
+  const normalizedRecords = records.slice(0, rawRows.length).map(normalizeLead);
+
+  while (normalizedRecords.length < rawRows.length) {
+    normalizedRecords.push({
+      __skipped: true,
+      __skip_reason: "AI response did not include this input row.",
+    });
+  }
+
+  return normalizedRecords;
+}
+
 export async function mapBatchWithAI(
-  rawRows: Record<string, string>[],
+  rawRows: RawCsvRecord[],
 ): Promise<CRMLead[]> {
   const prompt = `
 You are an expert CRM data engineer. Your task is to map and normalize a batch of messy CSV lead records into the CRM schema.
@@ -185,7 +169,7 @@ Provide your response in JSON format matching this schema:
     const responseText = result.response.text();
 
     const parsedData = parseJsonResponse(responseText);
-    return (parsedData.records || []).map(normalizeLead);
+    return normalizeAIRecords(rawRows, parsedData.records || []);
   } catch (error: unknown) {
     console.error("Gemini Mapping Error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";

@@ -1,1 +1,5 @@
-import ManagePage from "@/app/manage-lead/page"; export default function HomePage() { return <ManagePage /> }
+import { ManageLeadClient } from "@/app/manage-leads/ManageLeadClient"
+
+export default function HomePage() {
+  return <ManageLeadClient />
+}

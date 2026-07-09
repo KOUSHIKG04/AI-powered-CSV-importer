@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseCsv } from "./csvParser.js";
+import { parseCsv } from "../../src/utils/csvParser.js";
 
 describe("parseCsv", () => {
   it("parses arbitrary CSV headers into records", async () => {
