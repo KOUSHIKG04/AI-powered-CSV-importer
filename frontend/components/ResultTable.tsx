@@ -141,7 +141,7 @@ export function ResultTable({ records }: ResultTableProps) {
           ) : (
             <div className="w-full min-w-0 overflow-hidden rounded-xl border bg-card">
               <div className="w-full overflow-x-auto pb-2">
-                <div className="min-w-[1440px]">
+                <div className="w-max">
                   <div className="grid grid-cols-[180px_260px_170px_150px_180px_180px_260px] gap-3 border-b bg-secondary px-4 py-3 text-[11px] font-bold tracking-wider text-secondary-foreground uppercase sm:gap-4 sm:px-6 sm:text-xs">
                     <div>Lead Name</div>
                     <div>Email</div>
@@ -170,7 +170,7 @@ export function ResultTable({ records }: ResultTableProps) {
           ) : (
             <div className="w-full min-w-0 overflow-hidden rounded-xl border bg-card">
               <div className="w-full overflow-x-auto pb-2">
-                <div className="min-w-[1120px]">
+                <div className="w-max">
                   <div className="grid grid-cols-[260px_180px_260px_170px_250px] gap-3 border-b bg-secondary px-4 py-3 text-[11px] font-bold tracking-wider text-secondary-foreground uppercase sm:gap-4 sm:px-6 sm:text-xs">
                     <div>Skip Reason</div>
                     <div>Name</div>
