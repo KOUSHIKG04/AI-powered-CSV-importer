@@ -3,7 +3,7 @@
 import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChartColumn, LayoutDashboard, Database } from "lucide-react"
+import { ChartColumn, Database } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -20,8 +20,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toggletheme } from "@/components/Toggletheme"
 
 const mainMenuItems = [
-  { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
-  { title: "Manage Leads", icon: Database, url: "/manage-lead" },
+  { title: "Manage Leads", icon: Database, url: "/manage-leads" },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -44,7 +43,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <div className="flex size-4 shrink-0 items-center justify-center text-primary">
               <ChartColumn className="size-4" />
             </div>
-            <p className="truncate text-sm font-medium tracking-tight text-muted-foreground group-data-[collapsible=icon]:hidden">
+            <p className="truncate text-[14px] font-medium tracking-tighter text-muted-foreground group-data-[collapsible=icon]:hidden">
               CRM Importer - AI
             </p>
           </Link>
@@ -63,8 +62,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         tooltip={item.title}
                         render={
                           <Link href={item.url}>
-                            <item.icon />
-                            <span>{item.title}</span>
+                            <item.icon className="mr-1" />
+                            <span className="text-[15px]">{item.title}</span>
                           </Link>
                         }
                       >

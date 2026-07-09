@@ -42,6 +42,8 @@ export function FileUploader({
     if (e.target.files && e.target.files[0]) {
       validateAndSelectFile(e.target.files[0])
     }
+
+    e.currentTarget.value = ""
   }
 
   const validateAndSelectFile = (file: File) => {
@@ -78,7 +80,7 @@ export function FileUploader({
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center transition-colors ${
+      className={`relative flex w-full min-w-0 flex-col items-center justify-center px-1 transition-colors sm:px-0 ${
         isDragActive
           ? "border-primary bg-primary/5"
           : "border-muted-foreground/20 hover:border-primary/50"
@@ -90,7 +92,7 @@ export function FileUploader({
     >
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="mb-5 flex w-[80%] cursor-pointer flex-col items-center justify-center border border-border bg-muted px-2 py-6"
+        className="mb-5 flex w-full cursor-pointer flex-col items-center justify-center border border-border bg-muted px-4 py-6 text-center sm:w-[85%] sm:px-6"
       >
         <input
           ref={fileInputRef}
@@ -104,9 +106,11 @@ export function FileUploader({
           <Upload className="h-6 w-6" />
         </div>
 
-        <div className="mb-1 flex items-center gap-1 text-center text-base font-semibold">
-          Drop your CSV file here
-          <p className="text-center text-sm text-muted-foreground">or</p>{" "}
+        <div className="mb-1 flex max-w-full flex-col items-center gap-1 text-center text-sm font-semibold sm:flex-row sm:text-base">
+          <span>Drop your CSV file here</span>
+          <span className="text-xs font-normal text-muted-foreground sm:text-sm">
+            or
+          </span>
           <span
             onClick={() => fileInputRef.current?.click()}
             className="cursor-pointer font-medium text-primary hover:underline"
@@ -115,12 +119,12 @@ export function FileUploader({
           </span>
         </div>
 
-        <div className="mt-3 mb-4 inline-flex items-center gap-1.5 bg-black/50 px-3 py-2 text-xs text-muted-foreground">
-          <span>Supported file: .csv (max 5MB)</span>
+        <div className="mt-3 mb-4 inline-flex max-w-full items-center gap-1.5 bg-black/50 px-3 py-2 text-center text-[11px] text-white sm:text-xs">
+          Supported file: .csv (max 5MB)
         </div>
       </div>
 
-      <div className="mb-6 max-w-3xl text-center text-[13px] leading-relaxed text-muted-foreground">
+      <div className="mt-3 mb-6 max-w-full px-2 text-center text-[11px] leading-relaxed tracking-wide text-muted-foreground sm:max-w-lg sm:px-0 sm:text-[13px] sm:tracking-wider">
         <span className="text-white underline">Required headers:</span>{" "}
         created_at, name, email, country_code, mobile_without_country_code,
         company, city, state, country, lead_owner, crm_status, crm_note.
@@ -131,10 +135,12 @@ export function FileUploader({
         variant="outline"
         size="sm"
         onClick={downloadSampleTemplate}
-        className="bg-muted cursor-pointer text-primary"
+        className="h-auto max-w-full cursor-pointer bg-muted px-3 py-2 text-primary"
       >
-        <FileSpreadsheet className="h-4 w-4" />
-        Download Sample CSV Template
+        <FileSpreadsheet className="h-4 w-4 shrink-0" />
+        <span className="text-center whitespace-normal">
+          Download Sample CSV Template
+        </span>
       </Button>
     </div>
   )

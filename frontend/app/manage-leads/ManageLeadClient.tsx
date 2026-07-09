@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import Papa from "papaparse"
+import { useMemo, useState } from "react"
 import {
   Upload,
   Plus,
@@ -12,7 +11,7 @@ import {
   Trash2,
   FileCheck,
 } from "lucide-react"
-import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -24,148 +23,56 @@ import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { FileUploader } from "@/components/FileUploader"
 import { PreviewTable } from "@/components/PreviewTable"
-import { ResultTable, type CRMLead } from "@/components/ResultTable"
+import { ResultTable } from "@/components/ResultTable"
+import { useImportStream } from "@/hooks/useImportStream"
+import { useCsvPreview } from "@/hooks/useCsvPreview"
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000"
-
-export default function ManagePage() {
-  // Modal states
+export function ManageLeadClient() {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isParsingCsv, setIsParsingCsv] = useState(false)
-
-
-  const [csvHeaders, setCsvHeaders] = useState<string[]>([])
-  const [rawCsvRows, setRawCsvRows] = useState<Record<string, string>[]>([])
-
-  
-  const [isImporting, setIsImporting] = useState(false)
-  const [processedCount, setProcessedCount] = useState(0)
-  const [totalCount, setTotalCount] = useState(0)
-
-
-  const [processedLeads, setProcessedLeads] = useState<CRMLead[]>([])
   const [searchQuery, setSearchQuery] = useState("")
 
-  
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file)
-    setIsParsingCsv(true)
+  const {
+    selectedFile,
+    isParsingCsv,
+    csvHeaders,
+    rawCsvRows,
+    parseFile,
+    resetPreview,
+  } = useCsvPreview()
 
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (header) => header.trim(),
-      complete: (results) => {
-        const rows = results.data.filter((row) =>
-          Object.values(row).some((value) => String(value ?? "").trim() !== "")
-        )
+  const {
+    isImporting,
+    processedCount,
+    totalCount,
+    processedLeads,
+    clearResults,
+    importRows,
+  } = useImportStream()
 
-        if (rows.length === 0) {
-          toast.error("CSV file does not contain any data rows.")
-          setIsParsingCsv(false)
-          resetUploadState()
-          return
-        }
+  const resetUploadState = () => {
+    resetPreview()
+  }
 
-        setCsvHeaders(results.meta.fields ?? Object.keys(rows[0] ?? {}))
-        setRawCsvRows(rows)
-        setIsParsingCsv(false)
-        toast.success("CSV parsed and ready for preview.")
-      },
-      error: (error) => {
-        toast.error(`Failed to parse CSV file: ${error.message}`)
-        setIsParsingCsv(false)
-        resetUploadState()
-      },
+  const handleConfirmImport = () => {
+    void importRows(rawCsvRows, () => {
+      setIsUploadOpen(false)
+      resetUploadState()
     })
   }
 
- 
-  const resetUploadState = () => {
-    setSelectedFile(null)
-    setCsvHeaders([])
-    setRawCsvRows([])
-    setProcessedCount(0)
-    setTotalCount(0)
-  }
-
-  // Triggers SSE Streaming batch processing to backend
-  const handleConfirmImport = async () => {
-    if (rawCsvRows.length === 0) return
-
-    setIsImporting(true)
-    setProcessedCount(0)
-    setTotalCount(rawCsvRows.length)
-    setProcessedLeads([])
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/import-stream`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ records: rawCsvRows }),
-      })
-
-      if (!response.body) {
-        throw new Error("Failed to initialize import stream.")
-      }
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ""
-
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split("\n\n")
-        buffer = lines.pop() || ""
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const dataStr = line.slice(6).trim()
-            if (!dataStr) continue
-
-            const data = JSON.parse(dataStr)
-
-            if (data.type === "batch_result") {
-              setProcessedLeads((prev) => [...prev, ...data.records])
-              setProcessedCount(data.processed)
-            } else if (data.type === "error") {
-              throw new Error(data.error || "Import stream failed.")
-            }
-          }
-        }
-      }
-
-      setIsUploadOpen(false)
-      resetUploadState()
-      toast.success("CSV import completed.")
-    } catch (error: unknown) {
-      console.error("SSE stream error:", error)
-      const message =
-        error instanceof Error ? error.message : "Unknown import error"
-      toast.error(`Import failed: ${message}`)
-    } finally {
-      setIsImporting(false)
-    }
-  }
-
-  const filteredLeads = processedLeads.filter((lead) => {
+  const filteredLeads = useMemo(() => {
     const term = searchQuery.toLowerCase()
-    if (!term) return true
+    if (!term) return processedLeads
 
-    const contactStr = `${lead.country_code || ""}${lead.mobile_without_country_code || ""}`
-    return (
-      (lead.name?.toLowerCase().includes(term) ?? false) ||
-      (lead.email?.toLowerCase().includes(term) ?? false) ||
-      contactStr.includes(term)
-    )
-  })
+    return processedLeads.filter((lead) => {
+      const contactStr = `${lead.country_code || ""}${lead.mobile_without_country_code || ""}`
+      return (
+        (lead.name?.toLowerCase().includes(term) ?? false) ||
+        (lead.email?.toLowerCase().includes(term) ?? false) ||
+        contactStr.includes(term)
+      )
+    })
+  }, [processedLeads, searchQuery])
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -185,7 +92,7 @@ export default function ManagePage() {
               variant="outline"
               size="sm"
               className="border-rose-500/20 text-rose-500 hover:bg-rose-500/10"
-              onClick={() => setProcessedLeads([])}
+              onClick={clearResults}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Clear Data
@@ -214,7 +121,7 @@ export default function ManagePage() {
               dynamically identify, map, and normalize any CSV format into the
               CRM schema.
             </p>
-            <Button onClick={() => setIsUploadOpen(true)} className="gap-2">
+            <Button onClick={() => setIsUploadOpen(true)} className="gap-4 p-5 text-sm font-medium">
               <Upload className="h-4 w-4" />
               Import Leads via CSV
             </Button>
@@ -227,7 +134,7 @@ export default function ManagePage() {
                 <Input
                   placeholder="Enter email or phone number..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(event) => setSearchQuery(event.target.value)}
                   className="border-border bg-card pl-9"
                 />
               </div>
@@ -249,9 +156,9 @@ export default function ManagePage() {
         open={isUploadOpen}
         onOpenChange={(open) => !isImporting && setIsUploadOpen(open)}
       >
-        <DialogContent className="h-[550px] w-[92vw]! max-w-[900px]! overflow-hidden">
+        <DialogContent className="h-[550px] w-[92vw]! max-w-[650px]! overflow-hidden ">
           <DialogHeader>
-            <DialogTitle className="text-center text-lg font-bold">
+            <DialogTitle className="text-center text-lg font-bold mt-5">
               Import Leads via CSV
             </DialogTitle>
             <p className="text-center text-sm text-muted-foreground">
@@ -261,7 +168,7 @@ export default function ManagePage() {
 
           <div className="min-w-0 space-y-6 overflow-hidden">
             {!selectedFile && !isParsingCsv && (
-              <FileUploader onFileSelect={handleFileSelect} />
+              <FileUploader onFileSelect={parseFile} />
             )}
 
             {isParsingCsv && (
@@ -280,7 +187,7 @@ export default function ManagePage() {
                   <div className="flex items-center gap-3">
                     <FileCheck className="h-5 w-5 text-orange-500" />
                     <div className="flex flex-col">
-                      <span className="truncate sm:text-[10px] lg:text-sm text-foreground tracking-tighter">
+                      <span className="truncate tracking-tighter text-foreground sm:text-[10px] lg:text-sm">
                         {selectedFile.name}
                       </span>
                       <span className="text-[10px] font-medium text-muted-foreground/80">
@@ -327,13 +234,13 @@ export default function ManagePage() {
                     </span>
                   </div>
                   <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="absolute inset-y-0 left-0 w-1/3 animate-import-progress rounded-full bg-primary" />
+                    <div className="animate-import-progress absolute inset-y-0 left-0 w-1/3 rounded-full bg-primary" />
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {processedCount === 0
                       ? `Processing first batch of ${totalCount} records.`
                       : `Processed ${processedCount} of ${totalCount} records.`}
-                    Normalizing data using Gemini...
+                    {" "}Normalizing data using Gemini...
                   </p>
                 </div>
               </div>

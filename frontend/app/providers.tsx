@@ -9,7 +9,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="flex flex-1 flex-col overflow-hidden">
+        <SidebarInset className="flex flex-1 flex-col overflow-hidden pb-4">
           {children}
         </SidebarInset>
       </SidebarProvider>
